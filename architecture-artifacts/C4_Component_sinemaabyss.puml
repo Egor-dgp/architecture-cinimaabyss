@@ -1,0 +1,50 @@
+@startuml
+!if %variable_exists("RELATIVE_INCLUDE")
+!include ./C4_Context.puml 
+!include ./C4_Container.puml 
+!include ./C4_Component.puml 
+!else
+  !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4.puml
+  !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+  !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+  !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!endif
+
+'Уровень контекта C1 (Доменов)
+Person(User, "Пользователь кинобазы")
+System(ApiGateway, "Маршрутизатор запросов")
+System_Boundary(Domains, "Домены") {
+    'Уровень контейнеров C2 (Микросервисов)
+    Container_Boudary(Movies_Catalog,"Домен Каталог: хранит метаданные о фильмах"){
+        'Уровень компонентов (Составных частей микросервисов)
+        Component_Boundary(catalog_movies_service, "Сервис с CRUD мо метаданным фильмов"){
+            Component(catalog_api, "Catalog_Api_component", "Интерфейс", "Фасадный слой для обращения к сервису для фильмов, людей и изданий")
+            Component(catalog_application, "Catalog_Application_Component", "use-case слой реализующий сценарии работы с метаданными фильмов")
+            Component(catalog_domain, "DTO", "Репозиотрии и доступ к БД", "Доменные правила валидации")
+            Component(catalog_events_adapter, "catalog_events_adapter_component", "публикация событий в шину для внешнего пользования")
+        }
+        Component_Boundary(catalog_aggregator_service, "Собирает информацию из других сервисов"){
+            Component(catalog_aggregator_api, "интерфейс", "предоставляет эндпоины с агрегированной ифнормацией из внешних сервисов")
+            Component(catalog_aggregator_logic, "Оркестрирует сбор информации из внешних сервисов")
+        }
+    }
+    Container_Boudary(Users_Auth,"Домен Пользователи: Хранит метаданные пользователей их роли и права и секреты для доступа"){
+        Component_Boundary(identity_service, "auth2.0 service"){
+            Component()
+        }
+        Component_Boundary(user_profile_service, "")
+    }
+}
+
+'Связи между компонентами внутри сервиса catalog_movies_service
+Rel(catalog_api, catalog_application, "Вызов use-case", "http")
+Rel(catalog_application, catalog_domain, "Загрузка/Сохранение доменных сущностей, бизнес-правила", "внутренний вызов")
+Rel(catalog_application, catalog_events_adapter, "публикация доменных событий", "внутренний вызов")
+
+'Связи между компонентами внутри сервиса catalog_aggregator_service
+Rel(catalog_aggregator_api, catalog_aggregator_logic, "Получение сагрегированной информации из внешних систем", "внутренний вызов")
+
+'Связи между сервисами catalog_movies_service и catalog_agrigator_service
+Rel(Catalog_Application_Component, catalog_aggregator_api, "Получение агрегированной информации из внешних сервисов")
+
+@enduml

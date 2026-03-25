@@ -1,0 +1,205 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+  !include ./C4_Container.puml
+!else
+  !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!endif
+
+' Scope: A single container.
+' Primary elements: Components within the container in scope.
+' Supporting elements: Containers (within the software system in scope) plus people and software systems directly connected to the components.
+' Intended audience: Software architects and developers.
+
+' Colors
+' ##################################
+
+!$COMPONENT_FONT_COLOR ?= "#000000"
+!$COMPONENT_BG_COLOR ?= "#85BBF0"
+!$COMPONENT_BORDER_COLOR ?= "#78A8D8"
+
+!$EXTERNAL_COMPONENT_LEGEND_TEXT ?= "external component"
+!$EXTERNAL_COMPONENT_FONT_COLOR ?= $COMPONENT_FONT_COLOR
+!$EXTERNAL_COMPONENT_BG_COLOR ?= "#CCCCCC"
+!$EXTERNAL_COMPONENT_BORDER_COLOR ?= "#BFBFBF"
+
+' New C4 style automatically swaps font and background colors, but with those settings the component/node background would be black.
+' Therefore the colors should be displayed unchanged (the init colors have to be swapped too).
+!$NEW_C4_USE_ORIGINAL_COMPONENT_COLORS ?= 1
+!$componentColorsSwappedAlready ?= 0
+!if (NEW_C4_STYLE == 1 && $NEW_C4_USE_ORIGINAL_COMPONENT_COLORS == 1 && $componentColorsSwappedAlready == 0)
+  !$swap=$COMPONENT_BG_COLOR
+  !$COMPONENT_BG_COLOR=$COMPONENT_FONT_COLOR
+  !$COMPONENT_FONT_COLOR=$swap
+  !$swap=$EXTERNAL_COMPONENT_BG_COLOR
+  !$EXTERNAL_COMPONENT_BG_COLOR=$EXTERNAL_COMPONENT_FONT_COLOR
+  !$EXTERNAL_COMPONENT_FONT_COLOR=$swap
+  ' don't swap them again below if C4_... included again
+  !$componentColorsSwappedAlready=1
+!endif
+
+' Labels
+' ##################################
+
+!$COMPONENT_LEGEND_TEXT ?= "component"
+!$EXTERNAL_COMPONENT_LEGEND_TEXT ?= "external component"
+
+' Styling
+' ##################################
+
+UpdateElementStyle("component", $COMPONENT_BG_COLOR, $COMPONENT_FONT_COLOR, $COMPONENT_BORDER_COLOR, $shape=$DEFAULT_SHAPE, $legendText="$COMPONENT_LEGEND_TEXT")
+UpdateElementStyle("external_component", $EXTERNAL_COMPONENT_BG_COLOR, $EXTERNAL_COMPONENT_FONT_COLOR, $EXTERNAL_COMPONENT_BORDER_COLOR, $shape=$DEFAULT_SHAPE, $legendText="$EXTERNAL_COMPONENT_LEGEND_TEXT")
+
+' shortcuts with default colors
+!unquoted procedure AddComponentTag($tagStereo, $bgColor="", $fontColor="", $borderColor="", $shadowing="", $shape="", $sprite="", $techn="", $legendText="", $legendSprite="", $borderStyle="", $borderThickness="")
+  $addElementTagInclReuse("component", $tagStereo, $bgColor, $fontColor, $borderColor, $shadowing, $shape, $sprite, $techn, $legendText, $legendSprite, $borderStyle, $borderThickness)
+!endprocedure
+!unquoted procedure AddExternalComponentTag($tagStereo, $bgColor="", $fontColor="", $borderColor="", $shadowing="", $shape="", $sprite="", $techn="", $legendText="", $legendSprite="", $borderStyle="", $borderThickness="")
+  $addElementTagInclReuse("external_component", $tagStereo, $bgColor, $fontColor, $borderColor, $shadowing, $shape, $sprite, $techn, $legendText, $legendSprite, $borderStyle, $borderThickness)
+!endprocedure
+
+' Layout
+' ##################################
+
+SetDefaultLegendEntries("person\nsystem\ncontainer\ncomponent\nexternal_person\nexternal_system\nexternal_container\nexternal_component\nenterprise_boundary\nsystem_boundary\ncontainer_boundary\nboundary")
+
+!procedure LAYOUT_WITH_LEGEND()
+hide stereotype
+legend right
+|<color:$LEGEND_TITLE_COLOR>**Legend**</color> |
+|<$PERSON_BG_COLOR> person |
+|<$SYSTEM_BG_COLOR> system |
+|<$CONTAINER_BG_COLOR> container |
+|<$COMPONENT_BG_COLOR> component |
+|<$EXTERNAL_PERSON_BG_COLOR> external person |
+|<$EXTERNAL_SYSTEM_BG_COLOR> external system |
+|<$EXTERNAL_CONTAINER_BG_COLOR> external container |
+|<$EXTERNAL_COMPONENT_BG_COLOR> external component |
+endlegend
+!endprocedure
+
+' Elements
+' ##################################
+
+!unquoted procedure Component($alias, $label, $techn="", $descr="", $sprite="", $tags="", $link="", $baseShape="rectangle")
+  $getElementLine($baseShape, "component", $alias, $label, $techn, $descr, $sprite, $tags, $link)
+!endprocedure
+
+!unquoted procedure ComponentDb($alias, $label, $techn="", $descr="", $sprite="", $tags="", $link="")
+  $getElementLine("database", "component", $alias, $label, $techn, $descr, $sprite, $tags, $link)
+!endprocedure
+
+!unquoted procedure ComponentQueue($alias, $label, $techn="", $descr="", $sprite="", $tags="", $link="")
+  $getElementLine("queue", "component", $alias, $label, $techn, $descr, $sprite, $tags, $link)
+!endprocedure
+
+!unquoted procedure Component_Ext($alias, $label, $techn="", $descr="", $sprite="", $tags="", $link="", $baseShape="rectangle")
+  $getElementLine($baseShape, "external_component", $alias, $label, $techn, $descr, $sprite, $tags, $link)
+!endprocedure
+
+!unquoted procedure ComponentDb_Ext($alias, $label, $techn="", $descr="", $sprite="", $tags="", $link="")
+  $getElementLine("database", "external_component", $alias, $label, $techn, $descr, $sprite, $tags, $link)
+!endprocedure
+
+!unquoted procedure ComponentQueue_Ext($alias, $label, $techn="", $descr="", $sprite="", $tags="", $link="")
+  $getElementLine("queue", "external_component", $alias, $label, $techn, $descr, $sprite, $tags, $link)
+!endprocedure
+
+' ============================================
+' ДИАГРАММА КОМПОНЕНТОВ СИСТЕМЫ УПРАВЛЕНИЯ ВОРОТАМИ
+' ============================================
+
+title Компонентная диаграмма системы кинобазы
+
+'==Домен каталог характеризует область системы где хранятся метаданные фильмов:названия, описание, год, постер, длительность, возрастной рейтинг и.т.д., связи: фильм-жанры-страны, фильм-люди (режиссеры и актеры)
+
+Component(fe, "фронтенд", "вызовы с UI", "согласно лендскейпу компании")
+Component(api_gateway, "маршрутизатор межлу клиентом и сервером", "функции: маршрутизирует запросы между микрофронтами (на каждый домен по микрофронту)", "Kong")
+System_Boundary(Catalog_Movies, "Домен Каталог"){
+    'Компоненты домена каталог
+    Component(catalog_movies_service, "сервис-ядро дамена, работающий с атрибутным составом метаданных фильмов в формате CRUD", "Функции: Обращение к БД, отработка CRUD операций от сервиса агрегатора-фасада", "Стек: Go")
+    Component(catalog_agregator_api, "сервис-фасад для фронта и других доменов, агрегатор данных с внешних систем", "Функции: сбор данных с внешних систем, группировка и агрегация этих данных", "Стек: Go")
+    ComponentDb(data_base_catalog, "база данных домена Каталог", "Хранит атрибуты метаданных фильмов(описание, назваие, жанр, версию и.т.д.), связи: фильм-жанры-страны-люди(актеры, режисеры и.т.д)", "Стек: PostgresSQL")
+    ComponentQueue(kafka_topic_catalog_events, "топик в очередь о CRUD событиях", "кладет сообщения о CRUD событиях над фильмами", "Kafka")
+}
+System_Boundary(Users__Identity_Profiles, "Домен Профиль"){
+    Component(users_profile_service, "сервис-ядро домена хранящий информацию о данных пользователей", "Функции: CRUD данных пользователей, Обращение в БД к данным пользователя", "Стек: Go")
+    Component(identity_service, "сервис домена хранящий секреты и осуществляющий контроль доступа", "Функции: Аутентификация и авторизаци пользователей, валидация запросов и выдача JWT токенов, предоставление прав пользователю", "Стек: Ory Stack")
+    Component(users_permission_service, "сервис домена хранящий информацию о правах и ролях пользователей (Роли: редактор, пользователь кинотеатра и.т.д., права: на редактирование фильмов, просмотр данных или самого фильма и.т.д)", "Функции: CRUD по ролям и правам, обращение к БД по связям роль-права-пользователь", "Стек: Ory Stack")
+    Component(users_aggregation_api, "предоставляет фасад для вызова сервисов домена из сторонних доменов и также фасад для фронта а также сам осуществляет общение с внешними сервисами", "функции: аггрегирует данные из внешних сервисов, предоставляет интерфейс для фронта и внешних сервисов", "Go")
+    ComponentDb(data_base_users, "база данных хранящая метаднные пользователей, связи роли-права-пользователи-секреты пользователей", "Функции: CRUD по пользователям, правам, роляи, связям", "Стек: PostgresSQL")
+    ComponentQueue(kafka_topic_users_events, "топик в очередь о CRUD событиях", "кладет сообщения о CRUD событиях над пользователями", "kafka")
+}
+System_Boundary(Billing, "Домен Билинг"){
+    Component(billing_orders_service, "сервис оркестратор заказа", "функции: менеджерит заказ, меняет статус, хранит статусы и истории заказов, обращается к БД с CRUD по заказу", "Go")
+    Component(biling_payments_service, "прокси сервис с платежной системой, аппелирует сущностью платеж и связывает ее с заказом", "функции: хранит состояния сущности платежа и связи платеж заказ, интегрируется с внешней платежной системой, имеет интерфейс для внешних и внутриенних вызовов", "Go")
+    Component(billing_entitlement_service, "хранит связи у каких пользователей какие права, собственно сами права итд", "функции: предоставляет интерфейс для получения и воздействия на инфу касаемо связей и прав на фильмы", "Go")
+    ComponentDb(data_base_billing_users, "хранит связи фильм-заказ-плетеж-пользователь и атрибуты этих сущносте", "функции: CRUD над сущностями и связями", "PosgressSQL")
+    ComponentQueue(kafka_topic_billing_events, "топик в очереди о событиях изменения статуса заказа", "кладет сообщения о событиях изменения статуса", "Kafka")
+    ComponentQueue(kafka_topic_payments_events, "топик в очереди о событиях изменения статуса платежа", "кладет событие об изменении статуса платежа", "Kafka")
+}
+Component_Ext(external_PSP, "Tinkoff Касса", "готовое решение, работающее по Event Driven Design в связке с billing_paymentd_service", "Tinkoff Касса")
+System_Boundary(Playback_Streaming, "Домен просмотра и стриминга"){
+    Component(video_storage_service, "Сервис менеджерит объектное хранилище", "Функции: хранит метаданные файлов фильмов, работает с объектным хранилищем через SDK", "Go")
+    Component(playback_service, "сервис который менеджерит сессию клиента на просмотр фильма", "функции: валидация права пользователя на просмотр фильма, отдает клиенту URL манифеста для CDN стримингового шлюза", "Go")
+    Component(upload_service, "сервис который менеджерит загрузку файла из админки", "функции: загружает файл c админки клиента в кэш откуда он потом берется сервисом trancoding и закгржается чанками в бакеты S3", "Go")
+    Component(transcoding_service, "транскодинг сервис который сырой видеофайл из кэша и разбивает на чанки и прихоранивает в s3", "функции: берет из кэша сырой файл, разбивает на чанки и прихоранивает вбакеты s3 Storge, генерирует HLS манифест, читает задачу из топика", "Go")
+    ComponentQueue(kafka_topic_tasks_playback, "топик куда складываются задачи на декодинг файлов", "хранит задачи на декодинг файлов", "kafka")
+    ComponentDb(cash_playback_files, "организованный и управляемый upload_service кэш для загрузки видео из админки а также хранения временных URL", "фунции: хранит сырой файл загруженный туда uplod_service из админки, хранит временные URl", "Redis")
+    Component(streaming_gateway, "CDN шлюз стриминга который кэширует копии чанков фильмов которые транслируются в рантайме", "функции: отдает манифесты и чанки по порядку в манифесте делает столько копий в кэше сколько одновременно пользовательских сессий", "Akamai")
+    ComponentDb(data_base_playback, "хранитт сущности и связи playback домена", "функции: хранит метаданные в каком бакете какой файл лежит, хранит связи метаданных файла и фильмов, URL хра", "PosgresSQL")
+}
+Component_Ext(s3, "Объектное хранилище для хранения файлов фильмов", "функции: хранит чанки файлов, манифесты", "S3Minio")
+System_Boundary(Discovery, "Домен Поиск и отзывы"){
+    Component(search_service, "сервис полнотекстовый поиск", "Функции: обращается к базе каталога фильмов и запросом о выдаче", "Elasticsearch")
+    Component(review_service, "Сервис по сбору отзывов и хранения их в базе", "функции: собирает с клиентов отзывы и прихоранивает их в базе", "Go")
+    ComponentDb(data_base_discovery, "база данных по оценкам и отзывам", "хранит отзывы и оценки фильмов", "PosgresSQL")
+    Component(discovery_aggregator_api, "сервис фасад для фронта и сторонник сервисов", "собирает инфу со всех доменов и агрегирует ее в контексте задачи домена, предоставляет интерфейс для различных сервисов других доменов и для фронта", "Go")
+}
+
+'аутентификация/авторизация пользователя
+Rel(FE,api_gateway, "отправляет запрос на бэк", "https")
+Rel(api_gateway, users_aggregation_api, "точка фхода в домен пользователи", "https")
+Rel(users_aggregation_api,identity_service, "авторизация/аутентификация пользователя", "auth20")
+Rel(identity_service, users_permission_service, "запрашивает права пользователя", "http")
+Rel(users_profile_service, data_base_users, "извлекает информацию о пользователе", "SQL")
+Rel(users_permission_service, data_base_users, "извлекает дынные о правах пользователя", "SQL")
+Rel(users_aggregation_api, kafka_topic_users_events, "отправляет CRUD события по пользователям", "Kafka produce")
+
+'upload файла с фильмом
+Rel(api_gateway, upload_service, "обращается о создании upload сессии/получает uri", "http")
+Rel(upload_service, s3, "запрашивает uri", "ssh")
+Rel(fe,s3, "upload файлов напрямую", "https")
+Rel(s3, upload_service, "webhook о завершении загрузки", "https")
+Rel(transcoding_service, s3, "pull сырого файла из бакета", "https")
+Rel(transcoding_service, s3, "push манифеста и чанков из файла", "https")
+Rel(transcoding_service, data_base_playback, "пишет метаданные загруженного файла и данные фильма к которому этот файл относится", "SQL")
+
+'поиск по фильму
+Rel(api_gateway, discovery_aggregator_api, "обращается к домену поиска", "http")
+Rel(discovery_aggregator_api, search_service, "обращаетя к сервису поиска", "http")
+Rel(search_service, review_service, "обращается к данным сервиса", "http")
+Rel(search_service, catalog_agregator_api, "обращается к данным каталога", "http")
+Rel(catalog_agregator_api, catalog_movies_service, "обращается к данным каталога", "http")
+Rel(catalog_movies_service, data_base_catalog, "обращаемся к данным каталога", "sql")
+Rel(review_service, data_base_discovery, "обращается к данным в бд", "SQL")
+Rel(search_service, billing_orders_service, "обращается к сервису по данным о покупкам", "http")
+Rel(billing_orders_service, data_base_billing_users, "обращается к бд", "SQL")
+
+'просмотр фильма
+Rel(catalog_agregator_api, playback_service, "обращается с метадаными фильма за метаданными файлов", "http")
+Rel(playback_service, billing_entitlement_service, "получает инфу по правам пользователя", "http")
+Rel(playback_service, video_storage_service, "получает метаданные файлов", "http")
+Rel(video_storage_service, data_base_catalog, "получает метаданные файлов из БД", "sql")
+Rel(fe, streaming_gateway, "обращается к сервису за манифестом и чанками по метаданным файлов", "https")
+Rel(streaming_gateway, s3, "забирает чанки и манифест кэшируюя их в соответсвии с кол-вом запросов с fe", "http")
+
+'покупка фильма
+Rel(catalog_agregator_api, billing_orders_service, "по метаданным фильма инифиализируется заказ на покупку фильма/запрашивает статус заказа", "http")
+Rel(billing_orders_service, billing_paymentd_service, "формирует платеж/запрашивает статус платежа", "http")
+Rel(biling_payments_service, external_PSP, "платежная транзакция", "https")
+Rel(billing_orders_service, billing_entitlement_service, "запись метаданных о правах пользователя на фильм", "http")
+
+LAYOUT_WITH_LEGEND()
+
+@enduml
