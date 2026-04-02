@@ -1,0 +1,32 @@
+# Настройки сервера
+server:
+  port: 8080  # Порт, на котором работает сервис
+
+# Настройки Spring
+spring:
+  application:
+    name: events-service  # Имя приложения
+  
+  # Настройки Kafka
+  kafka:
+    # Адрес Kafka сервера
+    bootstrap-servers: localhost:9092
+    
+    # Настройки ОТПРАВКИ
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    
+    # Настройки ПОЛУЧЕНИЯ
+    consumer:
+      group-id: my-group  # Имя группы (должно совпадать с @KafkaListener)
+      auto-offset-reset: earliest  # Читать с начала, если нет сохраненной позиции
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"  # Разрешить десериализацию любых классов
+
+# Настройки логирования
+logging:
+  level:
+    com.events: INFO  # Уровень логирования для нашего пакета

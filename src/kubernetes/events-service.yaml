@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 3  # Запустить 3 копии приложения
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-app
+        image: ghcr.io/Egor-dgp/architecture-cinimaabyss/events-service:latest
+        ports:
+        - containerPort: 3000
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: events-service
+spec:
+  selector:
+    app: events-service  # Ищет Pod'ы с этой меткой
+  ports:
+  - port: 80       # Порт, на котором Service слушает
+    targetPort: 3000  # Порт контейнера
+  type: ClusterIP  # Тип Service (внутренний доступ)
